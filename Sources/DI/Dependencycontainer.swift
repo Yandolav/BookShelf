@@ -2,7 +2,7 @@ public final class Dependencycontainer {
 
     // MARK: Private properties
 
-    private let storage: StorageProtocol
+    private let storage: CodableStorageProtocol
     private let bookRepository: BookRepositoryProtocol
     private let historyService: HistoryServiceProtocol
     private let bookService: BookShelfServiceProtocol

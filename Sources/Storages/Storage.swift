@@ -1,44 +1,48 @@
 import Foundation
 
-protocol StorageProtocol {
-    func getBooks() -> [Book]
-    func saveBooks(_ books: [Book])
+protocol CodableStorageProtocol {
+    func load<T: Decodable>(_ type: T.Type, fileName: String, default defaultValue: T) -> T
+    func save<T: Encodable>(_ value: T, fileName: String)
 }
 
-final class Storage: StorageProtocol {
+final class Storage: CodableStorageProtocol {
 
-    // MARK: Private properties
+    private let baseDirectory: URL
+    private let encoder: JSONEncoder
+    private let decoder: JSONDecoder
 
-    private let fileURL: URL
-
-    // MARK: Init
-
-    init() {
-        let base = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        self.fileURL = base.appendingPathComponent("books.json")
+    init(
+        baseDirectory: URL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!,
+        encoder: JSONEncoder = JSONEncoder(),
+        decoder: JSONDecoder = JSONDecoder()
+    ) {
+        self.baseDirectory = baseDirectory
+        self.encoder = encoder
+        self.decoder = decoder
     }
 
-    // MARK: Public methods
-
-    func getBooks() -> [Book] {
-        guard FileManager.default.fileExists(atPath: fileURL.path) else { return [] }
+    func load<T: Decodable>(_ type: T.Type, fileName: String, default defaultValue: T) -> T {
+        let url = baseDirectory.appendingPathComponent(fileName)
+        guard FileManager.default.fileExists(atPath: url.path) else { return defaultValue }
 
         do {
-            let data = try Data(contentsOf: fileURL)
-            guard !data.isEmpty else { return [] }
-            return try JSONDecoder().decode([Book].self, from: data)
+            let data = try Data(contentsOf: url)
+            guard !data.isEmpty else { return defaultValue }
+            return try decoder.decode(T.self, from: data)
         } catch {
-            print("getBooks error:", error)
-            return []
+            print("load error (\(fileName)):", error)
+            return defaultValue
         }
     }
 
-    func saveBooks(_ books: [Book]) {
+    func save<T: Encodable>(_ value: T, fileName: String) {
+        let url = baseDirectory.appendingPathComponent(fileName)
+
         do {
-            let data = try JSONEncoder().encode(books)
-            try data.write(to: fileURL, options: [.atomic])
+            let data = try encoder.encode(value)
+            try data.write(to: url, options: [.atomic])
         } catch {
-            print("saveBooks error:", error)
+            print("save error (\(fileName)):", error)
         }
     }
 }

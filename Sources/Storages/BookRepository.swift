@@ -7,22 +7,23 @@ final class BookRepository: BookRepositoryProtocol {
 
     // MARK: Private properties
 
-    private let storage: StorageProtocol
+    private let storage: CodableStorageProtocol
+    private let fileName = "books.json"
 
     // MARK: Init
 
-    init(storage: StorageProtocol) {
+    init(storage: CodableStorageProtocol) {
         self.storage = storage
     }
 
     // MARK: Public methods
 
     func load() -> [Book] {
-        storage.getBooks()
+        storage.load([Book].self, fileName: fileName, default: [])
     }
 
     func save(_ books: [Book]) {
-        storage.saveBooks(books)
+        storage.save(books, fileName: fileName)
     }
 }
 
