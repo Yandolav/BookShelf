@@ -1,5 +1,8 @@
 import UIKit
 import PlaygroundSupport
+import XCTest
+
+BookShelfServiceTests.defaultTestSuite.run()
 
 
 let navigationController = UINavigationController()
